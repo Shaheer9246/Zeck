@@ -90,6 +90,7 @@ export type SpeechInputProps = Omit<
 	onActiveChange?: (active: boolean) => void;
 	onProcessingChange?: (processing: boolean) => void;
 	onError?: (error: unknown) => void;
+	audioInputDeviceId?: string;
 	lang?: string;
 	recordingMode?: "auto" | "media-recorder" | "streaming";
 };
@@ -136,6 +137,7 @@ export function SpeechInput({
 	onClick,
 	onError,
 	onProcessingChange,
+	audioInputDeviceId,
 	onStartStreaming,
 	onStreamingEnd,
 	onStreamingStart,
@@ -301,7 +303,11 @@ export function SpeechInput({
 		const operationId = ++operationIdRef.current;
 		setIsProcessing(true);
 		try {
-			const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+			const audio =
+				audioInputDeviceId && audioInputDeviceId !== "default"
+					? { deviceId: { exact: audioInputDeviceId } }
+					: true;
+			const stream = await navigator.mediaDevices.getUserMedia({ audio });
 			if (!mountedRef.current || operationId !== operationIdRef.current) {
 				for (const track of stream.getTracks()) track.stop();
 				return;
@@ -374,7 +380,7 @@ export function SpeechInput({
 			setIsProcessing(false);
 			onErrorRef.current?.(error);
 		}
-	}, []);
+	}, [audioInputDeviceId]);
 
 	const toggleListening = useCallback(() => {
 		if (mode === "speech-recognition" && recognitionRef.current) {

@@ -34,6 +34,10 @@ import {
 } from "@/components/ui/sidebar";
 import { ChatInputBar } from "@/components/views/chat/chat-input-bar";
 import { ChatMessages } from "@/components/views/chat/chat-messages";
+import {
+	type FrameworkPreset,
+	frameworkPromptAddendum,
+} from "@/components/views/chat/session-setup-panel";
 import { WelcomeScreen } from "@/components/views/chat/welcome-chat";
 import { WelcomeSetupNotice } from "@/components/views/chat/welcome-setup-notice";
 import type { OnboardingStep } from "@/components/views/onboarding/onboarding-view";
@@ -1164,6 +1168,34 @@ function ChatThreadPane({
 		},
 		[setConfig],
 	);
+	const updateSessionSetup = useCallback(
+		(
+			next: Partial<
+				Pick<
+					ChatSessionConfig,
+					| "framework"
+					| "sessionInstructions"
+					| "microphoneDeviceId"
+					| "autoApproveTools"
+				>
+			>,
+		) => {
+			setConfig((previous) => {
+				const updated = { ...previous, ...next };
+				const frameworkPrompt = frameworkPromptAddendum(
+					(updated.framework || "auto") as FrameworkPreset,
+				);
+				const instructions = updated.sessionInstructions?.trim();
+				return {
+					...updated,
+					systemPrompt:
+						[frameworkPrompt, instructions].filter(Boolean).join("\n\n") ||
+						undefined,
+				};
+			});
+		},
+		[setConfig],
+	);
 
 	const handleRemoveQueuedPrompt = useCallback(
 		async (promptId: string) => {
@@ -1564,22 +1596,36 @@ function ChatThreadPane({
 			onPromptInputChange={handlePromptInputChange}
 			onOpenModelSettings={onOpenModelSettings}
 			onReasoningChange={handleReasoningChange}
+			onAutoApproveChange={(enabled) =>
+				updateSessionSetup({ autoApproveTools: enabled })
+			}
+			onFrameworkChange={(framework) => updateSessionSetup({ framework })}
+			onMicrophoneDeviceChange={(microphoneDeviceId) =>
+				updateSessionSetup({ microphoneDeviceId })
+			}
+			onSessionInstructionsChange={(sessionInstructions) =>
+				updateSessionSetup({ sessionInstructions })
+			}
 			onSteerPromptInQueue={steerPromptInQueue}
 			onEditPromptInQueue={updatePromptInQueue}
 			onRemovePromptInQueue={handleRemoveQueuedPrompt}
 			onProviderChange={handleProviderChange}
 			onSend={handleSendPrompt}
 			gitBranch={gitBranch}
+			framework={(config.framework || "auto") as FrameworkPreset}
 			model={config.model}
 			modelContextWindow={modelContextWindow}
+			microphoneDeviceId={config.microphoneDeviceId || "default"}
 			mode={config.mode}
 			promptsInQueue={promptsInQueue}
 			promptDraft={promptDraft}
 			provider={config.provider}
 			reasoningEffort={config.reasoningEffort}
+			sessionInstructions={config.sessionInstructions || ""}
 			status={status}
 			summary={summary}
 			thinking={config.thinking}
+			autoApproveTools={config.autoApproveTools !== false}
 			variant={isWelcomeState ? "welcome" : "conversation"}
 		/>
 	);

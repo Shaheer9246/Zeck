@@ -12,6 +12,7 @@ import {
 	Cpu,
 	Paperclip,
 	Plus,
+	Settings2,
 	X,
 } from "lucide-react";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -64,6 +65,7 @@ import { cn } from "@/lib/utils";
 import { startVercelStreamingTranscription } from "@/lib/vercel-streaming-transcription";
 import { MAX_RECORDED_AUDIO_BYTES } from "@/lib/voice-input-limits";
 import { PullRequestBar } from "./pull-request-bar";
+import { type FrameworkPreset, SessionSetupPanel } from "./session-setup-panel";
 import { WorkspaceSelector as WorkspaceSelectorImpl } from "./workspace-selector";
 
 // Memoized: the workspace/branch selector fans out into popovers and lists
@@ -306,6 +308,14 @@ type ChatInputBarProps = {
 	onReasoningChange: (
 		next: Pick<ChatSessionConfig, "thinking" | "reasoningEffort">,
 	) => void;
+	framework: FrameworkPreset;
+	onFrameworkChange: (framework: FrameworkPreset) => void;
+	sessionInstructions: string;
+	onSessionInstructionsChange: (instructions: string) => void;
+	microphoneDeviceId: string;
+	onMicrophoneDeviceChange: (deviceId: string) => void;
+	autoApproveTools: boolean;
+	onAutoApproveChange: (enabled: boolean) => void;
 	onListGitBranches: () => Promise<{ current: string; branches: string[] }>;
 	onSwitchGitBranch: (branch: string) => Promise<boolean>;
 	onSend: (prompt: string) => void;
@@ -340,6 +350,14 @@ function ChatInputBarImpl({
 	mode,
 	thinking,
 	reasoningEffort,
+	framework,
+	onFrameworkChange,
+	sessionInstructions,
+	onSessionInstructionsChange,
+	microphoneDeviceId,
+	onMicrophoneDeviceChange,
+	autoApproveTools,
+	onAutoApproveChange,
 	gitBranch,
 	promptDraft,
 	onPromptInputChange,
@@ -368,6 +386,10 @@ function ChatInputBarImpl({
 		switchWorkspace: onSwitchWorkspace,
 		pickWorkspaceDirectory: onPickWorkspaceDirectory,
 	} = useWorkspace();
+	const [setupOpen, setSetupOpen] = useState(variant === "welcome");
+	useEffect(() => {
+		if (variant === "welcome") setSetupOpen(true);
+	}, [variant]);
 	// Keystrokes only update this local state; the parent page tree is not
 	// re-rendered per keypress. External writers push text in via promptDraft.
 	const [promptInput, setPromptInputState] = useState(promptDraft.value);
@@ -514,6 +536,7 @@ function ChatInputBarImpl({
 		}
 		setPromptInput("");
 		onSend(prompt);
+		if (variant === "welcome") setSetupOpen(false);
 	}, [
 		onSend,
 		promptInput,
@@ -521,6 +544,7 @@ function ChatInputBarImpl({
 		speechInputActive,
 		unsupportedDraftImageCount,
 		reportUnsupportedImages,
+		variant,
 	]);
 	const fileInputRef = useRef<HTMLInputElement | null>(null);
 	const [transcriptionTarget, setTranscriptionTarget] =
@@ -1389,6 +1413,7 @@ function ChatInputBarImpl({
 							    don't get a dead control. */}
 							{transcriptionTarget ? (
 								<SpeechInput
+									audioInputDeviceId={microphoneDeviceId}
 									key={`${transcriptionTarget.providerId}:${transcriptionTarget.modelId}:${transcriptionTarget.supportsStreaming ? "streaming" : "auto"}`}
 									onActiveChange={handleSpeechInputActiveChange}
 									onAudioRecorded={handleAudioRecorded}
@@ -1458,6 +1483,57 @@ function ChatInputBarImpl({
 						))}
 					</div>
 				)}
+				{variant === "welcome" ? (
+					setupOpen ? (
+						<SessionSetupPanel
+							autoApproveTools={autoApproveTools}
+							framework={framework}
+							isBusy={isBusy}
+							model={model}
+							modelSelector={
+								<ModelSelector
+									isBusy={isBusy}
+									model={model}
+									onModelChange={onModelChange}
+									onModelSupportsImagesChange={handleModelSupportsImagesChange}
+									onModelSupportsReasoningChange={
+										handleModelSupportsReasoningChange
+									}
+									onOpenModelSettings={onOpenModelSettings}
+									onProviderChange={onProviderChange}
+									provider={provider}
+								/>
+							}
+							onAutoApproveChange={onAutoApproveChange}
+							onFrameworkChange={onFrameworkChange}
+							onMicrophoneDeviceChange={onMicrophoneDeviceChange}
+							onModeToggle={onModeToggle}
+							onProviderChange={onProviderChange}
+							onSessionInstructionsChange={onSessionInstructionsChange}
+							microphoneDeviceId={microphoneDeviceId}
+							mode={mode}
+							provider={provider}
+							sessionInstructions={sessionInstructions}
+						/>
+					) : (
+						<Button
+							aria-label="Reopen chat setup"
+							className="mt-3 h-auto w-full justify-between rounded-md border border-border/70 bg-background/60 px-3 py-2 text-left"
+							onClick={() => setSetupOpen(true)}
+							type="button"
+							variant="ghost"
+						>
+							<span className="truncate text-xs text-muted-foreground">
+								{framework === "auto" ? "Auto-detect" : framework} · {provider}{" "}
+								·{" "}
+								{sessionInstructions.trim()
+									? "Custom instructions"
+									: "Default instructions"}
+							</span>
+							<Settings2 className="size-3.5 shrink-0" />
+						</Button>
+					)
+				) : null}
 			</div>
 
 			{/* Composer settings */}
