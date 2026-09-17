@@ -19,7 +19,6 @@
     "overrides": [
         {
             "includes": [
-                "apps/vscode/**"
             ],
             "assist": {
                 "enabled": true,

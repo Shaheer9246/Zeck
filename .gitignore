@@ -20,9 +20,6 @@ pnpm-lock.yaml
 .actrc
 CLAUDE.local.md
 
-apps/vscode/webview-ui/src/**/*.js
-apps/vscode/webview-ui/src/**/*.js.map
-
 # Ignore coverage directories and files
 coverage
 coverage-unit
@@ -38,9 +35,6 @@ coverage-unit
 .worktrees
 
 ## Generated files ##
-apps/vscode/src/generated/
-apps/vscode/src/shared/proto/
-apps/vscode/webview-ui/src/services/grpc-client.ts
 *.tsbuildinfo
 
 # E2E Tests
@@ -72,10 +66,6 @@ apps/examples/*/src-tauri/bin
 # Tauri UI test snapshots
 apps/*/src/tests/.tui-test
 apps/*/src/tests/tui-traces
-apps/vscode/webview-ui/src/**/*.js
-apps/vscode/webview-ui/src/**/*.js.map
-
-
 # SDK Session files / User data
 .cline/data
 .cline/tmp
@@ -84,7 +74,6 @@ apps/vscode/webview-ui/src/**/*.js.map
 *.db-wal
 .cline/**/managed.json
 .cline/**/bundle.json
-apps/vscode/tsconfig.test.generated.json
 .next/dev/static
 **/src-tauri/target/debug/.fingerprint
 apps/examples/desktop-app/src-tauri/target

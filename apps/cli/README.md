@@ -11,9 +11,6 @@
 <a href="https://www.npmjs.com/package/cline" target="_blank">NPM</a>
 </td>
 <td align="center">
-<a href="https://marketplace.visualstudio.com/items?itemName=saoudrizwan.claude-dev" target="_blank">VS Code Extension</a>
-</td>
-<td align="center">
 <a href="https://discord.gg/cline" target="_blank">Discord</a>
 </td>
 <td align="center">
@@ -29,7 +26,7 @@
 </table>
 </div>
 
-Run Cline in your terminal. Interactive chat for paired sessions, or fully headless for CI/CD and scripting. The CLI shares its agent core with the [Cline VS Code extension](https://marketplace.visualstudio.com/items?itemName=saoudrizwan.claude-dev), JetBrains plugin, and SDK, so plan/act modes, MCP servers, checkpoints, rules, skills, and provider configuration all behave the same across surfaces.
+Run Cline in your terminal. Interactive chat for paired sessions, or fully headless for CI/CD and scripting. The CLI shares its agent core with the Desktop app, JetBrains plugin, and SDK, so plan/act modes, MCP servers, checkpoints, rules, skills, and provider configuration behave consistently across surfaces.
 
 ## Install
 

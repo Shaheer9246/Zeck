@@ -71,18 +71,6 @@ routines, and manage models, plugins, and MCP servers.
 <tr>
 <td align="center" width="50%">
 
-### VS Code Extension
-
-AI coding assistant in your editor.
-Create files, run commands, browse the web,
-and use tools with human-in-the-loop approval.
-
-<a href="https://marketplace.visualstudio.com/items?itemName=saoudrizwan.claude-dev">Install from VS Marketplace</a>
-<br><br>
-
-</td>
-<td align="center" width="50%">
-
 ### JetBrains Plugin
 
 The same Cline experience in IntelliJ IDEA,
