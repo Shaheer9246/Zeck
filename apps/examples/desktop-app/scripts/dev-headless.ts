@@ -43,10 +43,24 @@ process.on("SIGTERM", stopChildren);
 
 async function main(): Promise<void> {
 	const sidecarPort = await reserveAvailablePort();
-	const endpoint = `ws://127.0.0.1:${sidecarPort}/transport?approval_token=${approvalToken}`;
+	const codespaces = process.env.CODESPACES === "true";
+	const forwardingDomain = process.env.GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN;
+	const codespaceName = process.env.CODESPACE_NAME;
+	const publicHost =
+		codespaces && forwardingDomain && codespaceName
+			? `${codespaceName}-${sidecarPort}.${forwardingDomain}`
+			: `127.0.0.1:${sidecarPort}`;
+	const endpointProtocol = codespaces ? "wss" : "ws";
+	const endpoint = `${endpointProtocol}://${publicHost}/transport?approval_token=${approvalToken}`;
+	const trustedOrigin =
+		codespaces && forwardingDomain && codespaceName
+			? `https://${codespaceName}-3125.${forwardingDomain}`
+			: "";
 	const sidecar = spawn(["bun", "run", "sidecar/index.ts"], {
 		CLINE_SIDECAR_APPROVAL_TOKEN: approvalToken,
 		CLINE_SIDECAR_PORT: String(sidecarPort),
+		CLINE_SIDECAR_HOST: codespaces ? "0.0.0.0" : "127.0.0.1",
+		CLINE_SIDECAR_TRUSTED_ORIGINS: trustedOrigin,
 	});
 	const web = spawn(
 		["bun", "run", "next", "dev", "webview", "-p", "3125", "--turbo"],
