@@ -1,5 +1,10 @@
 "use client";
 
+import {
+	CURATED_FREE_MODELS,
+	type FreeModelEntry,
+	type FreeModelTag,
+} from "@cline/llms/browser";
 import { Settings2 } from "lucide-react";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
@@ -49,6 +54,8 @@ type SessionSetupPanelProps = {
 	onProviderChange: (provider: string) => void;
 	onModelChange: (model: string) => void;
 	modelSelector: ReactNode;
+	freeModelsOnly: boolean;
+	onFreeModelsOnlyChange: (enabled: boolean) => void;
 	framework: FrameworkPreset;
 	onFrameworkChange: (framework: FrameworkPreset) => void;
 	sessionInstructions: string;
@@ -61,11 +68,26 @@ type SessionSetupPanelProps = {
 	onModeToggle: () => void;
 };
 
+const PROVIDER_LABELS: Record<FreeModelEntry["provider"], string> = {
+	cloudflare: "Cloudflare",
+	groq: "Groq",
+	openrouter: "OpenRouter",
+};
+
+const TAG_LABELS: Record<FreeModelTag, string> = {
+	chat: "💬 chat",
+	coding: "💻 coding",
+	fast: "⚡ fast",
+	thinking: "🧠 thinking",
+};
+
 export function SessionSetupPanel({
 	provider,
 	model,
 	isBusy,
 	modelSelector,
+	freeModelsOnly,
+	onFreeModelsOnlyChange,
 	framework,
 	onFrameworkChange,
 	sessionInstructions,
@@ -114,6 +136,71 @@ export function SessionSetupPanel({
 					<p className="text-[11px] text-muted-foreground">
 						{provider} · {model}
 					</p>
+					<div className="mt-3 space-y-2">
+						<div className="flex items-center justify-between gap-2">
+							<span className="text-xs font-medium text-muted-foreground">
+								Free Models ⚡
+							</span>
+							<button
+								aria-pressed={freeModelsOnly}
+								className={cn(
+									"rounded-md border px-2 py-1 text-[11px] transition-colors",
+									freeModelsOnly
+										? "border-primary/50 bg-primary/10 text-foreground"
+										: "border-border text-muted-foreground hover:bg-surface-hover",
+								)}
+								onClick={() => onFreeModelsOnlyChange(!freeModelsOnly)}
+								type="button"
+							>
+								All free (auto)
+							</button>
+						</div>
+						<div className="max-h-44 space-y-2 overflow-y-auto pr-1">
+							{(["groq", "cloudflare", "openrouter"] as const).map(
+								(providerId) => {
+									const entries = CURATED_FREE_MODELS.filter(
+										(entry) => entry.provider === providerId,
+									);
+									return (
+										<div key={providerId}>
+											<div className="mb-1 text-[10px] uppercase tracking-wide text-muted-foreground">
+												{PROVIDER_LABELS[providerId]}
+											</div>
+											<div className="space-y-1">
+												{entries.map((entry) => (
+													<button
+														className="flex w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left hover:bg-surface-hover disabled:opacity-50"
+														disabled={isBusy}
+														key={entry.modelId}
+														onClick={() => {
+															onFreeModelsOnlyChange(false);
+															onProviderChange(entry.provider);
+															onModelChange(entry.modelId);
+														}}
+														type="button"
+													>
+														<span className="min-w-0 truncate text-xs text-foreground">
+															{entry.label}
+														</span>
+														<span className="flex shrink-0 gap-1">
+															{entry.tags.map((tag) => (
+																<span
+																	className="rounded bg-muted px-1 py-0.5 text-[9px] text-muted-foreground"
+																	key={tag}
+																>
+																	{TAG_LABELS[tag]}
+																</span>
+															))}
+														</span>
+													</button>
+												))}
+											</div>
+										</div>
+									);
+								},
+							)}
+						</div>
+					</div>
 				</div>
 
 				<div className="space-y-2">

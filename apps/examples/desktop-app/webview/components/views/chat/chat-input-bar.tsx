@@ -1,5 +1,6 @@
 "use client";
 
+import { isFreeModel } from "@cline/llms/browser";
 import {
 	CLINE_DEFAULT_MODEL_ID,
 	formatDisplayUserInput,
@@ -387,8 +388,10 @@ function ChatInputBarImpl({
 		pickWorkspaceDirectory: onPickWorkspaceDirectory,
 	} = useWorkspace();
 	const [setupOpen, setSetupOpen] = useState(variant === "welcome");
+	const [allFreeModels, setAllFreeModels] = useState(false);
 	useEffect(() => {
 		if (variant === "welcome") setSetupOpen(true);
+		if (variant !== "welcome") setAllFreeModels(false);
 	}, [variant]);
 	// Keystrokes only update this local state; the parent page tree is not
 	// re-rendered per keypress. External writers push text in via promptDraft.
@@ -1493,6 +1496,7 @@ function ChatInputBarImpl({
 							modelSelector={
 								<ModelSelector
 									isBusy={isBusy}
+									freeOnly={allFreeModels}
 									model={model}
 									onModelChange={onModelChange}
 									onModelSupportsImagesChange={handleModelSupportsImagesChange}
@@ -1505,6 +1509,8 @@ function ChatInputBarImpl({
 								/>
 							}
 							onAutoApproveChange={onAutoApproveChange}
+							onFreeModelsOnlyChange={setAllFreeModels}
+							freeModelsOnly={allFreeModels}
 							onFrameworkChange={onFrameworkChange}
 							onMicrophoneDeviceChange={onMicrophoneDeviceChange}
 							onModeToggle={onModeToggle}
@@ -1599,6 +1605,7 @@ function ChatInputBarImpl({
 					<div className="min-w-0 shrink-0">
 						<ModelSelector
 							isBusy={isBusy}
+							freeOnly={allFreeModels}
 							model={model}
 							onModelChange={onModelChange}
 							onModelSupportsImagesChange={handleModelSupportsImagesChange}
@@ -1687,6 +1694,7 @@ const ModelSelector = memo(function ModelSelector({
 	provider,
 	model,
 	isBusy,
+	freeOnly = false,
 	onProviderChange,
 	onModelChange,
 	onModelSupportsReasoningChange,
@@ -1696,6 +1704,7 @@ const ModelSelector = memo(function ModelSelector({
 	provider: string;
 	model: string;
 	isBusy: boolean;
+	freeOnly?: boolean;
 	onProviderChange: (provider: string) => void;
 	onModelChange: (model: string) => void;
 	onModelSupportsReasoningChange: (supportsReasoning: boolean | null) => void;
@@ -1799,12 +1808,20 @@ const ModelSelector = memo(function ModelSelector({
 					(entry) => [entry.id, entry] as const,
 				),
 			);
-			const models = (visibleProviderModels[providerId] ?? []).map(
-				(id) => detailsById.get(id) ?? { id, name: id },
-			);
+			const models = (visibleProviderModels[providerId] ?? [])
+				.map((id) => detailsById.get(id) ?? { id, name: id })
+				.filter((entry) =>
+					freeOnly
+						? isFreeModel({
+								modelId: entry.id,
+								inputPrice: entry.inputPrice,
+								outputPrice: entry.outputPrice,
+							})
+						: true,
+				);
 			return buildModelPickerData(providerId, models);
 		},
-		[modelDetails, visibleProviderModels],
+		[freeOnly, modelDetails, visibleProviderModels],
 	);
 	useEffect(() => {
 		const selected = modelDetails[normalizedProvider]?.find(

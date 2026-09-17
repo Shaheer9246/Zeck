@@ -1,4 +1,12 @@
 export { CLINE_DEFAULT_MODEL_ID } from "@cline/shared";
+export {
+	CURATED_FREE_MODELS,
+	type FreeModelEntry,
+	type FreeModelTag,
+	freeModelsByTag,
+	freeModelsFor,
+	isFreeModel,
+} from "./catalog/free-models";
 export type {
 	GetModelsForProviderOptions,
 	ModelCollection,

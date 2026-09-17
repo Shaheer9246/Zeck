@@ -29,6 +29,8 @@ export interface ProviderModel {
 	supportsReasoning?: boolean;
 	inputModalities?: ModelModality[];
 	outputModalities?: ModelModality[];
+	inputPrice?: number;
+	outputPrice?: number;
 }
 
 export type { ModelModality, ModelOperation, ModelOperationMode };
