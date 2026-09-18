@@ -37,6 +37,13 @@ export interface EditorExecutorOptions {
 	 * @default 200
 	 */
 	maxDiffLines?: number;
+
+	/**
+	 * Maximum write operations (create/replace/insert) allowed on the same
+	 * file within a single agent turn. Blocks runaway rewrite loops.
+	 * @default 4
+	 */
+	maxWritesPerFilePerTurn?: number;
 }
 
 function resolveFilePath(
@@ -215,6 +222,55 @@ async function insertInFile(
 	return `Inserted content at line ${insertLineOneBased} in ${filePath}.`;
 }
 
+// ── REWRITE-LOOP GUARD ────────────────────────────────────────────────
+// Stops the agent rewriting the same file over and over in one turn
+// (the "51 API calls for one structure.md" bug). The thrown error is fed
+// back to the model, teaching it to stop — same pattern as the old_text
+// recovery error below.
+
+const writeCounts = new Map<string, number>();
+let currentTurnKey: string | null = null;
+let lastWrittenFile: string | null = null;
+
+function resolveTurnKey(context: AgentToolContext): { key: string; known: boolean } {
+	const c = context as unknown as Record<string, any>;
+	const key = c?.turnId ?? c?.turn?.id ?? c?.messageId ?? c?.requestId ?? c?.sessionId;
+	if (typeof key === "string" && key.length > 0) return { key, known: true };
+	return { key: "unknown-turn", known: false };
+}
+
+function consumeWriteBudget(
+	filePath: string,
+	max: number,
+	context: AgentToolContext,
+): void {
+	const { key, known } = resolveTurnKey(context);
+
+	if (known) {
+		if (key !== currentTurnKey) {
+			currentTurnKey = key;
+			writeCounts.clear(); // new turn → fresh budget
+		}
+	} else if (filePath !== lastWrittenFile) {
+		// No turn id available yet: consecutive-run fallback.
+		// Touching a different file resets the budget.
+		writeCounts.clear();
+		lastWrittenFile = filePath;
+	}
+
+	const n = (writeCounts.get(filePath) ?? 0) + 1;
+	writeCounts.set(filePath, n);
+
+	if (n > max) {
+		throw new Error(
+			`BLOCKED: ${n - 1} write operations already performed on ${filePath} in this turn. ` +
+				`The file content is final. Do NOT rewrite, reformat, or "improve" it again. ` +
+				`Finish the task with a summary, or wait for the user's next instruction.`,
+		);
+	}
+}
+// ── END GUARD ─────────────────────────────────────────────────────────
+
 /**
  * Create an editor executor using Node.js fs module
  */
@@ -225,14 +281,16 @@ export function createEditorExecutor(
 		encoding = "utf-8",
 		restrictToCwd = true,
 		maxDiffLines = 200,
+		maxWritesPerFilePerTurn = 4,
 	} = options;
 
 	return async (
 		input: EditFileInput,
 		cwd: string,
-		_context: AgentToolContext,
+		context: AgentToolContext,
 	): Promise<string> => {
 		const filePath = resolveFilePath(cwd, input.path, restrictToCwd);
+		consumeWriteBudget(filePath, maxWritesPerFilePerTurn, context);
 
 		if (input.insert_line != null) {
 			return insertInFile(
