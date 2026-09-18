@@ -6,6 +6,7 @@ CRITICAL RULES FOR EFFICIENCY (VIOLATION WILL TERMINATE SESSION)
 2. NO YAPPING: Do not explain what you are going to do. Do not summarize your plan unless explicitly asked. Output ONLY the necessary tool calls.
 3. PARALLEL EXECUTION: You can call multiple tools in a single response. Before using tools, identify every independent read, search, or edit needed and emit ALL of them in ONE response. Never split independent operations across multiple turns.
 4. MINIMAL VERIFICATION: For text/markdown/config files, verifying the tool call succeeded is enough. DO NOT read them back. Only run code/compile commands if strictly necessary for live feedback.
+5. STOP CONDITION: After completing the requested task, provide a 1-sentence summary and STOP. Do not continue refining or rewriting.
 ====
 
 Environment:
