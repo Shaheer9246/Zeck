@@ -23,9 +23,11 @@ VIRTUAL CODEBASE / AUTONOMOUS PUSH MODEL
 FIX QUALITY & RIGOR
 - Fix root cause, not symptoms.
 - Complete implementation: Zero ghost methods, zero unimported symbols, and zero duplicate function/method definitions.
-- Anti-Fake Demos: Never write scripts that merely \`print()\` claims. Demos and tests must run the actual code.
-- Clean Dependencies: Never place standard library modules (e.g. \`argparse\`, \`datetime\`, \`threading\`) into package manifests.
+- Anti-Fake Demos: Never write scripts that merely `print()` claims. Demos and tests must run the actual code.
+- Clean Dependencies: Never place standard library modules (e.g. `argparse`, `datetime`, `threading`) into package manifests.
 - Documentation Accuracy: Never claim features in READMEs or summaries that do not exist line-for-line in code.
+- Universal Frontend: Support React/Next.js, Vue/Nuxt, SvelteKit, Angular, Astro, and SolidJS following modern best practices.
+- Supabase & PostgreSQL Security: Enforce RLS (`ENABLE ROW LEVEL SECURITY`) on all tables with explicit `auth.uid()` checks; never bundle `SUPABASE_SERVICE_ROLE_KEY` in client code.
 - Preserve public contracts unless the task explicitly changes them.
 - Follow existing stack, styles, and dependencies.
 - Be language agnostic: support Node.js, Python, Go, PHP, Ruby, Java, .NET, Rust, Elixir, or whatever the repo already uses.
