@@ -152,16 +152,31 @@ export function resolveClineDir(): string {
 	if (CLINE_DIR) {
 		return CLINE_DIR;
 	}
-	const envDir = process.env.CLINE_DIR?.trim();
+	const envDir = (process.env.ZECK_DIR || process.env.CLINE_DIR)?.trim();
 	if (envDir) {
 		return envDir;
 	}
-	return join(HOME_DIR, ".cline");
+	if (existsSync(join(HOME_DIR, ".zeck"))) {
+		return join(HOME_DIR, ".zeck");
+	}
+	if (existsSync(join(HOME_DIR, ".cline"))) {
+		return join(HOME_DIR, ".cline");
+	}
+	return join(HOME_DIR, ".zeck");
 }
 
 export function resolveDocumentsClineDirectoryPath(): string {
+	if (existsSync(join(HOME_DIR, "Documents", "Zeck"))) {
+		return join(HOME_DIR, "Documents", "Zeck");
+	}
 	return join(HOME_DIR, "Documents", "Cline");
 }
+
+export const resolveZeckDir = resolveClineDir;
+export const resolveZeckDataDir = resolveClineDataDir;
+export const setZeckDir = setClineDir;
+export const setZeckDirIfUnset = setClineDirIfUnset;
+export const resolveDocumentsZeckDirectoryPath = resolveDocumentsClineDirectoryPath;
 
 type DocumentsExtensionName =
 	| "Agents"
