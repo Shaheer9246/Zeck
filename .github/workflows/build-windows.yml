@@ -1,15 +1,26 @@
-name: Build Zeck Windows (.exe & .msi)
+name: Build Windows Desktop App (.exe)
 
 on:
   push:
     branches:
       - main
+      - master
     tags:
       - 'v*'
-  pull_request:
-    branches:
-      - main
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
   workflow_dispatch:
+    inputs:
+      publish_release:
+        description: 'Publish as GitHub Release'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -19,12 +30,12 @@ jobs:
   build-windows:
     name: Build Zeck Windows (.exe & .msi)
     runs-on: windows-latest
-    permissions:
-      contents: write
-      pull-requests: read
+    env:
+      CARGO_TERM_COLOR: always
+      RUST_BACKTRACE: 1
 
     steps:
-      - name: Checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
         with:
           submodules: recursive
@@ -35,13 +46,13 @@ jobs:
         with:
           bun-version: latest
 
-      - name: Setup Node.js 22
+      - name: Setup Node.js 22 (for Tauri & Next.js tooling)
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'npm'
+          # NOTE: No npm cache here because the project uses Bun (bun.lock)
 
-      - name: Setup Rust Stable
+      - name: Setup Rust Stable Toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
@@ -50,67 +61,94 @@ jobs:
       - name: Cache Rust Dependencies
         uses: Swatinem/rust-cache@v2
         with:
-          workspaces: apps/examples/desktop-app/src-tauri
+          workspaces: |
+            apps/examples/desktop-app/src-tauri
+            src-tauri
           prefix-key: v1-rust
           add-job-id-key: true
 
       - name: Install Monorepo Dependencies
         shell: bash
         run: |
+          echo "=== Installing Dependencies with Bun ==="
           bun install --frozen-lockfile || bun install
 
-      # Topological build order: shared -> llms -> core -> ui
-      - name: Build Shared Packages (Strict Dependency Order)
+      # CRITICAL: Build shared packages strictly in topological order before packaging Tauri
+      - name: Build Shared UI & SDK (Strict Dependency Order)
         shell: bash
         run: |
           set -e
-          echo "=== Building @cline/shared ==="
+          echo "=== 1. Building @cline/shared ==="
           bun -F @cline/shared build
 
-          echo "=== Building @cline/llms ==="
+          echo "=== 2. Building @cline/llms ==="
           bun -F @cline/llms build
 
-          echo "=== Building @cline/core ==="
+          echo "=== 3. Building @cline/core ==="
           bun -F @cline/core build
 
-          echo "=== Building @cline/ui ==="
+          echo "=== 4. Building @cline/ui ==="
           bun -F @cline/ui build
 
-      - name: Verify Webview Imports
-        shell: pwsh
-        run: |
-          Write-Host "Verifying built dist files for @cline/llms/browser..."
-          if (Test-Path "./sdk/packages/llms/dist") {
-            Get-ChildItem -Path "./sdk/packages/llms/dist" -Recurse
-          } else {
-            Write-Host "Checking alternate packages directory..."
-            Get-ChildItem -Path "./Zeck-main/sdk/packages/llms/dist" -ErrorAction SilentlyContinue
-          }
-
-      - name: Package Windows Desktop App (.exe & .msi)
+      - name: Verify Webview Import Artifacts
         shell: bash
         run: |
-          bun run package:desktop:windows
+          echo "Verifying generated browser & node bundles..."
+          for pkg in shared llms core ui; do
+            if [ -d "sdk/packages/$pkg/dist" ]; then
+              echo "✓ sdk/packages/$pkg/dist exists"
+            elif [ -d "Zeck-main/sdk/packages/$pkg/dist" ]; then
+              echo "✓ Zeck-main/sdk/packages/$pkg/dist exists"
+            else
+              echo "! Warning: dist directory for $pkg not found"
+            fi
+          done
 
-      - name: Upload Windows Installers
+      - name: Package Zeck Windows Desktop App (.exe & .msi)
+        shell: bash
+        run: |
+          echo "=== Running Tauri Desktop Packaging ==="
+          if [ -f "scripts/package-desktop.ts" ]; then
+            bun run package:desktop:windows
+          elif [ -d "apps/examples/desktop-app" ]; then
+            cd apps/examples/desktop-app && (bun run package:desktop:windows || bun run build:binary)
+          else
+            bun run package:desktop:windows || bun run tauri build
+          fi
+
+      - name: Upload Windows Installer (.exe & .msi) Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: zeck-windows-installer
+          name: Zeck-Windows-Installer
           path: |
-            apps/examples/desktop-app/src-tauri/target/release/bundle/msi/*.msi
+            apps/examples/desktop-app/dist/desktop/*.exe
+            apps/examples/desktop-app/dist/desktop/*.msi
             apps/examples/desktop-app/src-tauri/target/release/bundle/nsis/*.exe
+            apps/examples/desktop-app/src-tauri/target/release/bundle/msi/*.msi
             apps/examples/desktop-app/src-tauri/target/release/*.exe
+            dist/desktop/*.exe
+            dist/desktop/*.msi
+            src-tauri/target/release/bundle/nsis/*.exe
+            src-tauri/target/release/bundle/msi/*.msi
+            src-tauri/target/release/*.exe
           if-no-files-found: warn
+          retention-days: 14
 
-      - name: Create GitHub Release (Tags Only)
-        if: startsWith(github.ref, 'refs/tags/v')
+      - name: Create GitHub Release (if tag or workflow_dispatch release)
+        if: startsWith(github.ref, 'refs/tags/v') || github.event.inputs.publish_release == 'true'
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            apps/examples/desktop-app/src-tauri/target/release/bundle/msi/*.msi
-            apps/examples/desktop-app/src-tauri/target/release/bundle/nsis/*.exe
+          name: Zeck Desktop ${{ github.ref_name }}
           draft: false
           prerelease: false
-          generate_release_notes: true
+          files: |
+            apps/examples/desktop-app/dist/desktop/*.exe
+            apps/examples/desktop-app/dist/desktop/*.msi
+            apps/examples/desktop-app/src-tauri/target/release/bundle/nsis/*.exe
+            apps/examples/desktop-app/src-tauri/target/release/bundle/msi/*.msi
+            dist/desktop/*.exe
+            dist/desktop/*.msi
+            src-tauri/target/release/bundle/nsis/*.exe
+            src-tauri/target/release/bundle/msi/*.msi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
