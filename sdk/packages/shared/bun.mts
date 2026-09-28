@@ -1,8 +1,23 @@
 /// <reference types="@types/bun" />
 export {};
 
+type PackageManifest = {
+	dependencies?: Record<string, string>;
+	peerDependencies?: Record<string, string>;
+};
+
+const packageJson = (await Bun.file(
+	new URL("./package.json", import.meta.url),
+).json()) as PackageManifest;
+
+// Keep published third-party runtime packages external, but bundle internal workspace code.
+const external = Object.keys({
+	...(packageJson.dependencies ?? {}),
+	...(packageJson.peerDependencies ?? {}),
+}).filter((name) => !name.startsWith("@cline/"));
+
 type BuildMode = "package" | "bundle" | "dev";
-const rawMode = Bun.env.BUILD_MODE ?? "bundle";
+const rawMode = Bun.env.BUILD_MODE ?? "package";
 const buildMode: BuildMode =
 	rawMode === "bundle" || rawMode === "dev" ? rawMode : "package";
 
@@ -20,15 +35,18 @@ const runBuild = async (
 		throw: false,
 	});
 
-	if (!result.success) {
-		throw new Error(`Failed ${name} build`);
+	if (result.logs && result.logs.length > 0) {
+		console.warn(`${name} build emitted ${result.logs.length} logs:`);
+		for (const log of result.logs) {
+			console.error(log);
+		}
 	}
 
-	if (result.logs.length > 0) {
-		console.warn(`${name} build emitted logs:`);
-		for (const log of result.logs) {
-			console.warn(log);
-		}
+	if (!result.success) {
+		const formattedErrors = (result.logs ?? [])
+			.map((log) => (typeof log === "object" && log !== null && "message" in log ? log.message : String(log)))
+			.join("\n");
+		throw new Error(`Failed ${name} build:\n${formattedErrors}`);
 	}
 };
 
@@ -43,6 +61,8 @@ await runBuild("node", {
 	],
 	outdir: "./dist",
 	target: "node",
+	external,
+	packages: "bundle",
 	minify,
 	sourcemap,
 });
@@ -51,10 +71,10 @@ await runBuild("browser", {
 	entrypoints: ["./src/index.browser.ts"],
 	outdir: "./dist",
 	target: "browser",
+	external,
+	packages: "bundle",
 	minify,
 	sourcemap,
-	packages: "bundle",
-	external: ["zod"],
 });
 
 if (shouldEmitTypes) {
