@@ -264,3 +264,6 @@ export function buildClineSystemPrompt(
 
 	return applyTemplate(basePrompt);
 }
+
+export const buildZeckSystemPrompt = buildClineSystemPrompt;
+export type ZeckSystemPromptOptions = ClineSystemPromptOptions;
