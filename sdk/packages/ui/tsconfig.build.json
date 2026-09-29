@@ -8,6 +8,10 @@
 		"noEmit": false,
 		"outDir": "dist/components",
 		"rootDir": "components",
+		"typeRoots": [
+			"./node_modules/@types",
+			"../../../node_modules/@types"
+		],
 		"types": ["react", "react-dom"]
 	},
 	"include": ["components/**/*.ts", "components/**/*.tsx"],
