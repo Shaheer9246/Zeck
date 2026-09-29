@@ -4,6 +4,10 @@
 		"jsx": "react-jsx",
 		"lib": ["ES2022", "DOM", "DOM.Iterable"],
 		"noEmit": true,
+		"typeRoots": [
+			"./node_modules/@types",
+			"../../../node_modules/@types"
+		],
 		"types": ["bun", "node", "react", "react-dom"]
 	},
 	"include": [
