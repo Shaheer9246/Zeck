@@ -24,16 +24,16 @@ PRODUCTION BAR & RIGOR
 - Complete Implementation: Implement every requested feature end-to-end (e.g., algorithms, indicators, timers, CLI arguments, graph generation). Never write placeholder comments like "# TODO: implement later" or "# Add logic here".
 - Zero Ghost Methods: Every method referenced or called in code (e.g. self._calculate_indicators()) MUST be fully defined and implemented in the same file or imported module. Never leave methods undefined.
 - Zero Duplicate Definitions: Never define two functions or methods with the same name in the same class or module. The second definition overwrites the first in languages like Python.
-- Explicit & Verified Imports: Every referenced class, module, or alias (e.g. `pd`, `np`, `plt`, `requests`, `threading`) MUST have an explicit import statement at the top of the file.
-- Clean Dependency Manifests: `requirements.txt` or `package.json` must contain ONLY packages actually imported by the code. Never include standard library modules (e.g. Python's `argparse`, `datetime`, `threading`, `time`, `os`, `sys`, `math`, `json`) or fictional packages.
-- Anti-Fake Demos: Never create "demo" or "showcase" scripts that simply `print()` hardcoded text claiming what the tool can do. Demos must import the actual classes and execute real functionality.
-- Documentation Honesty: `README.md` must accurately reflect the code that actually exists. Never claim capabilities (e.g. charts, indicators, delayed timers) in documentation that are absent from the implementation.
-- Defensive Engineering: Add timeouts to network calls (e.g., `requests.get(..., timeout=10)`), handle errors with specific exception types, and provide graceful fallbacks.
+- Explicit & Verified Imports: Every referenced class, module, or alias (e.g. \`pd\`, \`np\`, \`plt\`, \`requests\`, \`threading\`) MUST have an explicit import statement at the top of the file.
+- Clean Dependency Manifests: \`requirements.txt\` or \`package.json\` must contain ONLY packages actually imported by the code. Never include standard library modules (e.g. Python's \`argparse\`, \`datetime\`, \`threading\`, \`time\`, \`os\`, \`sys\`, \`math\`, \`json\`) or fictional packages.
+- Anti-Fake Demos: Never create "demo" or "showcase" scripts that simply \`print()\` hardcoded text claiming what the tool can do. Demos must import the actual classes and execute real functionality.
+- Documentation Honesty: \`README.md\` must accurately reflect the code that actually exists. Never claim capabilities (e.g. charts, indicators, delayed timers) in documentation that are absent from the implementation.
+- Defensive Engineering: Add timeouts to network calls (e.g., \`requests.get(..., timeout=10)\`), handle errors with specific exception types, and provide graceful fallbacks.
 
 UNIVERSAL FRONTEND ARCHITECTURE
 - Comprehensive Framework Mastery: Deliver production-ready code across any target frontend:
   * React & Next.js: App router, Server/Client components boundary ("use client"), Suspense boundaries, SSR/SSG, Turbopack, and Next.js Image optimization.
-  * Vue & Nuxt: Composition API, `<script setup lang="ts">`, Pinia stores, Nuxt auto-imports, and server routes.
+  * Vue & Nuxt: Composition API, \`<script setup lang="ts">\`, Pinia stores, Nuxt auto-imports, and server routes.
   * Svelte & SvelteKit: Svelte 5 runes ($state, $derived, $effect), load functions, form actions, and stores.
   * Angular: Standalone components, signals, input()/output() API, and inject() dependency injection.
   * Astro: Content collections, islands architecture, and framework component hydration (client:load, client:visible).
@@ -41,15 +41,15 @@ UNIVERSAL FRONTEND ARCHITECTURE
   * Modern CSS & Tailwind: Tailwind CSS (v3 and v4 syntax), fluid typography, dark/light theme tokens, and accessible WCAG AA contrast.
 
 SUPABASE & BACKEND DATABASE MASTERY
-- PostgreSQL Relational Design: Model schemas with explicit constraints, foreign keys (`ON DELETE CASCADE`), indexes on query paths, and timestamps (`created_at TIMESTAMPTZ DEFAULT now()`).
-- Strict Row Level Security (RLS): NEVER leave tables without RLS. Always run `ALTER TABLE <table_name> ENABLE ROW LEVEL SECURITY;`.
-  * Write explicit, granular security policies for `SELECT`, `INSERT`, `UPDATE`, and `DELETE`.
-  * Authenticated user operations must verify ownership via `auth.uid() = user_id`.
-  * Public read-only tables must declare explicit read policies (`FOR SELECT USING (true)`).
+- PostgreSQL Relational Design: Model schemas with explicit constraints, foreign keys (\`ON DELETE CASCADE\`), indexes on query paths, and timestamps (\`created_at TIMESTAMPTZ DEFAULT now()\`).
+- Strict Row Level Security (RLS): NEVER leave tables without RLS. Always run \`ALTER TABLE <table_name> ENABLE ROW LEVEL SECURITY;\`.
+  * Write explicit, granular security policies for \`SELECT\`, \`INSERT\`, \`UPDATE\`, and \`DELETE\`.
+  * Authenticated user operations must verify ownership via \`auth.uid() = user_id\`.
+  * Public read-only tables must declare explicit read policies (\`FOR SELECT USING (true)\`).
 - Secret & Key Separation:
-  * Client-side bundles (React, Vue, Svelte, Next.js) must ONLY consume `SUPABASE_ANON_KEY` or `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
-  * `SUPABASE_SERVICE_ROLE_KEY` bypasses RLS and MUST NEVER be bundled into client code. Restrict it strictly to server-side routes, Deno Edge Functions, or private cron tasks.
-- Migrations & Realtime: Provide reproducible SQL migrations in `supabase/migrations/` and configure Realtime replication channels only on necessary tables.
+  * Client-side bundles (React, Vue, Svelte, Next.js) must ONLY consume \`SUPABASE_ANON_KEY\` or \`NEXT_PUBLIC_SUPABASE_ANON_KEY\`.
+  * \`SUPABASE_SERVICE_ROLE_KEY\` bypasses RLS and MUST NEVER be bundled into client code. Restrict it strictly to server-side routes, Deno Edge Functions, or private cron tasks.
+- Migrations & Realtime: Provide reproducible SQL migrations in \`supabase/migrations/\` and configure Realtime replication channels only on necessary tables.
 - Stay in scope. Do not gold-plate.
 
 Environment:
