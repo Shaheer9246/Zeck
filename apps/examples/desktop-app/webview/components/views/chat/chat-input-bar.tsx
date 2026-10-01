@@ -389,6 +389,7 @@ function ChatInputBarImpl({
 	} = useWorkspace();
 	const [setupOpen, setSetupOpen] = useState(variant === "welcome");
 	const [allFreeModels, setAllFreeModels] = useState(false);
+	const [chatSubMode, setChatSubMode] = useState(false);
 	useEffect(() => {
 		if (variant === "welcome") setSetupOpen(true);
 		if (variant !== "welcome") setAllFreeModels(false);
@@ -1572,21 +1573,40 @@ function ChatInputBarImpl({
 					/>
 					<div className="flex shrink-0 items-center rounded-lg bg-muted/60 p-0.5 border border-border/50 text-xs font-medium">
 						<button
-							aria-pressed={mode === "plan"}
+							aria-pressed={mode === "plan" && !chatSubMode}
 							className={cn(
 								"flex items-center gap-1 rounded-md px-2.5 py-1 transition-all text-xs",
-								mode === "plan"
+								mode === "plan" && !chatSubMode
 									? "bg-background text-sky-400 font-semibold shadow-xs border border-sky-500/20"
 									: "text-muted-foreground hover:text-foreground",
 							)}
 							onClick={() => {
+								setChatSubMode(false);
 								if (mode !== "plan") onModeToggle();
 							}}
-							title="Plan mode: research and architect before modifying code"
+							title="Plan mode: research and design architecture before modifying files"
 							type="button"
 						>
 							<span className="size-1.5 rounded-full bg-sky-400" />
 							Plan
+						</button>
+						<button
+							aria-pressed={mode === "plan" && chatSubMode}
+							className={cn(
+								"flex items-center gap-1 rounded-md px-2.5 py-1 transition-all text-xs",
+								mode === "plan" && chatSubMode
+									? "bg-background text-emerald-400 font-semibold shadow-xs border border-emerald-500/20"
+									: "text-muted-foreground hover:text-foreground",
+							)}
+							onClick={() => {
+								setChatSubMode(true);
+								if (mode !== "plan") onModeToggle();
+							}}
+							title="Chat mode: ask questions, discuss ideas, and inspect code without file edits"
+							type="button"
+						>
+							<span className="size-1.5 rounded-full bg-emerald-400" />
+							Chat
 						</button>
 						<button
 							aria-pressed={mode === "act"}
@@ -1597,13 +1617,14 @@ function ChatInputBarImpl({
 									: "text-muted-foreground hover:text-foreground",
 							)}
 							onClick={() => {
+								setChatSubMode(false);
 								if (mode !== "act") onModeToggle();
 							}}
-							title="Build mode: autonomously create, edit files and run tools"
+							title="Edit mode: autonomously edit files, write code, and build"
 							type="button"
 						>
 							<span className="size-1.5 rounded-full bg-indigo-400" />
-							Build
+							Edit
 						</button>
 					</div>
 					<div className="min-w-0 shrink-0">
@@ -1624,27 +1645,32 @@ function ChatInputBarImpl({
 					<Select
 						disabled={modelSupportsReasoning !== true}
 						onValueChange={handleEffortChange}
-						value={EFFORT_LEVELS[effortIndex]?.value ?? "low"}
+						value={EFFORT_LEVELS[effortIndex]?.value ?? "none"}
 					>
 						<SelectTrigger
 							aria-label="Thinking level"
-							className="gap-1.5 border-0 px-2 text-sm shadow-none data-[size=sm]:h-7 [&>svg:last-child]:hidden max-[560px]:size-7 max-[560px]:justify-center max-[560px]:p-0 bg-transparent! hover:bg-surface-hover!"
+							className={cn(
+								"flex items-center gap-1.5 border border-border/50 rounded-lg px-2.5 py-1 text-xs shadow-none data-[size=sm]:h-7 [&>svg:last-child]:hidden max-[560px]:size-7 max-[560px]:justify-center max-[560px]:p-0 hover:bg-surface-hover transition-all font-medium",
+								effortLabel !== "None" && modelSupportsReasoning === true
+									? "bg-purple-500/10 text-purple-400 border-purple-500/30"
+									: "bg-muted/60 text-muted-foreground",
+							)}
 							size="sm"
 							title={
 								modelSupportsReasoning === false
-									? "The selected model does not report reasoning support"
-									: undefined
+									? "Thinking is disabled (selected model has no reasoning support)"
+									: `Thinking: ${effortLabel}`
 							}
 						>
-							<Brain className="size-3" />
+							<Brain className={cn("size-3.5", effortLabel !== "None" && modelSupportsReasoning === true ? "text-purple-400" : "text-muted-foreground")} />
 							<span className="max-[560px]:sr-only">
-								<SelectValue>{effortLabel}</SelectValue>
+								Thinking: {effortLabel}
 							</span>
 						</SelectTrigger>
 						<SelectContent align="start">
 							{EFFORT_LEVELS.map((option) => (
 								<SelectItem key={option.value} value={option.value}>
-									{option.label}
+									{option.label === "None" ? "Thinking: Off (None)" : `Thinking: ${option.label}`}
 								</SelectItem>
 							))}
 						</SelectContent>
