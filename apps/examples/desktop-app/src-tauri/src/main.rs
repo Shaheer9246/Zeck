@@ -1204,6 +1204,14 @@ fn set_tray_status(
     Ok(())
 }
 
+#[tauri::command]
+fn open_devtools(window: tauri::WebviewWindow) {
+    #[cfg(feature = "devtools")]
+    {
+        window.open_devtools();
+    }
+}
+
 fn main() {
     let desktop_backend = Arc::new(DesktopBackendState::default());
     let launch_cwd = std::env::current_dir()
@@ -1289,7 +1297,8 @@ fn main() {
             drain_desktop_actions,
             set_tray_status,
             relaunch_app,
-            quit_app
+            quit_app,
+            open_devtools
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri app")
