@@ -300,10 +300,10 @@ function WelcomeStep({ onContinue }: { onContinue: () => void }) {
 				<div className="w-full">
 					<AgentWelcomeHero variant="bot-only" />
 				</div>
-				<h1 className="mt-5 text-4xl font-semibold text-foreground">Cline</h1>
+				<h1 className="mt-5 text-4xl font-semibold text-foreground">Zeck</h1>
 				<p className="mt-2 text-lg text-foreground">Build software your way</p>
 				<p className="mt-6 text-md text-muted-foreground">
-					Cline is an AI coding agent. It reads your code, edits files, runs
+					Zeck is an autonomous AI coding agent. It reads your code, edits files, runs
 					commands, and works through tasks with you — in any project on your
 					machine.
 				</p>
@@ -531,7 +531,7 @@ function ConnectStep({
 		}
 	}, [apiKey, onConnected, selectedProvider, selectedProviderId]);
 
-	const [selectedMethod, setSelectedMethod] = useState<SetupMethod>("cline");
+	const [selectedMethod, setSelectedMethod] = useState<SetupMethod>("api-key");
 	const [clineKeyFormExpanded, setClineKeyFormExpanded] = useState(false);
 
 	return (
@@ -549,10 +549,10 @@ function ConnectStep({
 					<ArrowLeft className="size-4" />
 				</IconButton>
 				<h1 className="mt-6 text-2xl font-semibold tracking-tight text-foreground">
-					Set up Cline
+					Set up Zeck
 				</h1>
 				<p className="mt-4 text-sm text-muted-foreground">
-					Choose how Cline connects to models. You can add more providers
+					Choose how Zeck connects to models. You can add more providers
 					anytime in Settings.
 				</p>
 			</div>
