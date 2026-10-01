@@ -52,7 +52,7 @@ Once the user reviews and explicitly approves the plan in a follow-up message, u
  */
 export const PLAN_MODE_INSTRUCTIONS_MANUAL_SWITCH = `${PLAN_MODE_INSTRUCTIONS_BASE}
 
-Once you present the plan, end your turn and wait. You cannot switch to act mode yourself; the user must toggle Plan/Act. If tools require act mode, ask the user to "toggle to Act mode".`;
+Once you present the plan, end your turn and wait. You cannot switch to act mode yourself; the user must use the Plan/Act toggle. If tools require act mode, ask the user to "toggle to Act mode".`;
 
 function redactRemoteUrlCredentials(remote: string): string {
 	const schemeEnd = remote.indexOf("://");
