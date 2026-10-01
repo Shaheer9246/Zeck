@@ -152,17 +152,14 @@ export function resolveClineDir(): string {
 	if (CLINE_DIR) {
 		return CLINE_DIR;
 	}
-	const envDir = (process.env.ZECK_DIR || process.env.CLINE_DIR)?.trim();
+	const envDir = (process.env.CLINE_DIR || process.env.ZECK_DIR)?.trim();
 	if (envDir) {
 		return envDir;
 	}
 	if (existsSync(join(HOME_DIR, ".zeck"))) {
 		return join(HOME_DIR, ".zeck");
 	}
-	if (existsSync(join(HOME_DIR, ".cline"))) {
-		return join(HOME_DIR, ".cline");
-	}
-	return join(HOME_DIR, ".zeck");
+	return join(HOME_DIR, ".cline");
 }
 
 export function resolveDocumentsClineDirectoryPath(): string {
