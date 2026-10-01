@@ -104,7 +104,13 @@ export function SessionSetupPanel({
 	useEffect(() => {
 		if (!navigator.mediaDevices?.enumerateDevices) return;
 		void navigator.mediaDevices.enumerateDevices().then((allDevices) => {
-			setDevices(allDevices.filter((device) => device.kind === "audioinput"));
+			setDevices(
+				allDevices.filter(
+					(device) =>
+						device.kind === "audioinput" &&
+						Boolean(device.deviceId && device.deviceId.trim() && device.deviceId !== "default"),
+				),
+			);
 		});
 	}, []);
 
@@ -266,11 +272,19 @@ export function SessionSetupPanel({
 						</SelectTrigger>
 						<SelectContent>
 							<SelectItem value="default">Default microphone</SelectItem>
-							{devices.map((device, index) => (
-								<SelectItem key={device.deviceId} value={device.deviceId}>
-									{device.label || `Microphone ${index + 1}`}
-								</SelectItem>
-							))}
+							{devices
+								.filter((device) =>
+									Boolean(
+										device.deviceId &&
+											device.deviceId.trim() &&
+											device.deviceId !== "default",
+									),
+								)
+								.map((device, index) => (
+									<SelectItem key={device.deviceId} value={device.deviceId}>
+										{device.label || `Microphone ${index + 1}`}
+									</SelectItem>
+								))}
 						</SelectContent>
 					</Select>
 				</div>
