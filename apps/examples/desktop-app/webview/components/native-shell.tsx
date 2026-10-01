@@ -2,40 +2,39 @@
 
 import { useEffect } from "react";
 
-function isEditable(target: EventTarget | null): boolean {
-	if (!(target instanceof HTMLElement)) {
-		return false;
+async function triggerDevTools(): Promise<void> {
+	try {
+		const { invoke } = await import("@tauri-apps/api/core");
+		await invoke("open_devtools");
+	} catch {
+		// DevTools invoke unavailable in plain browser mode
 	}
-	return Boolean(target.closest("input, textarea, [contenteditable='true']"));
-}
-
-function hasTextSelection(): boolean {
-	const selection = window.getSelection();
-	return Boolean(selection && !selection.isCollapsed);
 }
 
 /**
- * Suppresses the WebView's built-in browser context menu (Back / Forward /
- * Reload / Inspect Element) so right-clicking app chrome behaves like a
- * native app instead of a web page.
- *
- * Radix context menus (e.g. on sidebar sessions) attach their own
- * `contextmenu` handlers on their triggers and call `preventDefault`
- * themselves, so they keep working. Editable fields and active text
- * selections keep the default menu for spellcheck / copy / paste.
+ * Native shell controller.
+ * Enables developer tools (F12, Ctrl+Shift+I) and native context menu (Inspect).
  */
 export function NativeShell() {
 	useEffect(() => {
-		const handleContextMenu = (event: MouseEvent) => {
-			if (isEditable(event.target) || hasTextSelection()) {
-				return;
+		const handleKeyDown = (event: KeyboardEvent) => {
+			if (
+				event.key === "F12" ||
+				((event.ctrlKey || event.metaKey) &&
+					event.shiftKey &&
+					event.key.toLowerCase() === "i")
+			) {
+				event.preventDefault();
+				void triggerDevTools();
 			}
-			event.preventDefault();
 		};
-		// Non-capture: runs after component-level handlers, so custom menus
-		// that already prevented default are unaffected either way.
-		window.addEventListener("contextmenu", handleContextMenu);
-		return () => window.removeEventListener("contextmenu", handleContextMenu);
+
+		window.addEventListener("keydown", handleKeyDown);
+		return () => {
+			window.removeEventListener("keydown", handleKeyDown);
+		};
 	}, []);
+
 	return null;
 }
+
