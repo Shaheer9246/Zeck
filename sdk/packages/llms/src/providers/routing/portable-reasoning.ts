@@ -34,6 +34,16 @@ export function resolvePortableReasoning(
 	if (!reasoning) {
 		return undefined;
 	}
+	if (request.providerId === "groq") {
+		const modelId = (request.modelId || "").toLowerCase();
+		const isGroqReasoning =
+			modelId.includes("r1") ||
+			modelId.includes("reason") ||
+			modelId.includes("qwq");
+		if (!isGroqReasoning) {
+			return undefined;
+		}
+	}
 	const fullySupported = PORTABLE_REASONING_PROVIDERS.has(request.providerId);
 	if (reasoning.enabled === false) {
 		return fullySupported ? "none" : undefined;
