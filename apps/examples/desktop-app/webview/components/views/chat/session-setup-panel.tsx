@@ -32,6 +32,8 @@ export const FRAMEWORK_PRESETS = [
 	{ value: "angular", label: "Angular", hint: "Angular application" },
 	{ value: "python", label: "Python", hint: "Python project or script" },
 	{ value: "node", label: "Node.js", hint: "Node service or tool" },
+	{ value: "typescript", label: "TypeScript", hint: "TypeScript project or library" },
+	{ value: "threejs", label: "Three.js / WebGL", hint: "3D graphics and spatial web" },
 	{ value: "html", label: "HTML / CSS", hint: "Static browser preview" },
 ] as const;
 
